@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Library System</title>
+</head>
+<body>
+<h1>Library System</h1>
+
+<!-- Formularz do dodawania książek -->
+<h2>Add Book</h2>
+<form id="addBookForm">
+    <input type="text" id="bookTitle" placeholder="Title">
+    <input type="text" id="bookAuthor" placeholder="Author">
+    <input type="number" id="bookYear" placeholder="Year">
+    <button type="submit">Add Book</button>
+</form>
+
+<!-- Formularz do usuwania książek -->
+<h2>Delete Book</h2>
+<form id="deleteBookForm">
+    <input type="number" id="deleteBookId" placeholder="Book ID">
+    <button type="submit">Delete Book</button>
+</form>
+
+<!-- Formularz do dodawania użytkowników -->
+<h2>Add User</h2>
+<form id="addUserForm">
+    <input type="text" id="userName" placeholder="Name">
+    <input type="text" id="userStudentNumber" placeholder="Student Number">
+    <button type="submit">Add User</button>
+</form>
+
+<!-- Formularz do usuwania użytkowników -->
+<h2>Delete User</h2>
+<form id="deleteUserForm">
+    <input type="number" id="deleteUserId" placeholder="User ID">
+    <button type="submit">Delete User</button>
+</form>
+
+<!-- Formularz do wypożyczania książek -->
+<h2>Borrow Book</h2>
+<form id="borrowBookForm">
+    <input type="number" id="borrowBookId" placeholder="Book ID">
+    <input type="text" id="borrowUserStudentNumber" placeholder="Student Number">
+    <button type="submit">Borrow Book</button>
+</form>
+
+<!-- Formularz do oddawania książek -->
+<h2>Return Book</h2>
+<form id="returnBookForm">
+    <input type="number" id="returnBorrowingId" placeholder="Borrowing ID">
+    <button type="submit">Return Book</button>
+</form>
+
+<!-- Formularz do wyszukiwania książek po tytule -->
+<h2>Search Books by Title</h2>
+<form id="searchBooksForm">
+    <input type="text" id="searchBookTitle" placeholder="Title">
+    <button type="submit">Search</button>
+</form>
+
+<!-- Wyniki wyszukiwania książek -->
+<h3>Search Results:</h3>
+<ul id="searchResults"></ul>
+
+<!-- Skrypty JS -->
+<script>
+    document.getElementById('addBookForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const title = document.getElementById('bookTitle').value;
+    const author = document.getElementById('bookAuthor').value;
+    const year = document.getElementById('bookYear').value;
+
+    fetch('http://localhost:8080/api/books', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, author, year })
+    })
+    .then(response => response.json())
+    .then(data => console.log("Book added:", data))
+    .catch(error => console.error('Error:', error));
+});
+
+document.getElementById('deleteBookForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const bookId = document.getElementById('deleteBookId').value;
+
+    fetch(`http://localhost:8080/api/books/${bookId}`, {
+        method: 'DELETE'
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log("Book deleted successfully");
+        } else {
+            throw new Error('Error in deleting book');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+document.getElementById('addUserForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const name = document.getElementById('userName').value;
+    const studentNumber = document.getElementById('userStudentNumber').value;
+
+    fetch('http://localhost:8080/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, studentNumber })
+    })
+    .then(response => response.json())
+    .then(data => console.log("User added:", data))
+    .catch(error => console.error('Error:', error));
+});
+
+document.getElementById('deleteUserForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const userId = document.getElementById('deleteUserId').value;
+
+    fetch(`http://localhost:8080/api/users/${userId}`, {
+        method: 'DELETE'
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log("User deleted successfully");
+        } else {
+            throw new Error('Error in deleting user');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+document.getElementById('borrowBookForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const bookId = document.getElementById('borrowBookId').value;
+    const studentNumber = document.getElementById('borrowUserStudentNumber').value;
+
+    fetch(`http://localhost:8080/api/borrowings/borrow?bookId=${bookId}&studentNumber=${studentNumber}`, {
+        method: 'POST'
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Error in borrowing book');
+        }
+    })
+    .then(data => console.log("Book borrowed:", data))
+    .catch(error => console.error('Error:', error));
+});
+
+document.getElementById('returnBookForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const borrowingId = document.getElementById('returnBorrowingId').value;
+
+    fetch(`http://localhost:8080/api/borrowings/return/${borrowingId}`, {
+        method: 'POST'
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log("Book returned successfully");
+        } else {
+            throw new Error('Error in returning book');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+document.getElementById('searchBooksForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const title = document.getElementById('searchBookTitle').value;
+    const resultsList = document.getElementById('searchResults');
+    resultsList.innerHTML = '';
+
+    fetch(`http://localhost:8080/api/books/search?title=${encodeURIComponent(title)}`)
+    .then(response => response.json())
+    .then(data => {
+        data.forEach(book => {
+            const listItem = document.createElement('li');
+            listItem.textContent = `Title: ${book.title}, Author: ${book.author}, Year: ${book.year}`;
+            resultsList.appendChild(listItem);
+        });
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+</script>
+</body>
+</html>
